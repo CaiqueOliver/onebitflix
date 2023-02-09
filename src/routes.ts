@@ -1,8 +1,11 @@
 import express from "express";
+import { authController } from "./controllers/authController";
 import { categoriesCcntroller } from "./controllers/categoriesController";
 import { coursesController } from "./controllers/coursesController";
 import { episodesController } from "./controllers/episodesController";
 const router = express.Router();
+
+router.post("/auth/register", authController.register);
 router.get("/categories", categoriesCcntroller.index);
 router.get("/categories/:id", categoriesCcntroller.show);
 
