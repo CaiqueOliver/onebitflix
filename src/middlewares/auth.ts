@@ -1,0 +1,55 @@
+import { NextFunction, Request, Response } from "express";
+import { JwtPayload } from "jsonwebtoken";
+import { UserInstance } from "../models/user";
+import { jwtService } from "../services/jwtService";
+import { userService } from "../services/userService";
+
+export interface AuthenticatedRequest extends Request {
+  user?: UserInstance | null;
+}
+
+export function ensureAuth(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) {
+  const authorizationHeader = req.headers.authorization;
+  if (!authorizationHeader)
+    return res
+      .status(401)
+      .json({ message: "Não autorizado. Nenhum token foi encontrado" });
+  const token = authorizationHeader.replace(/Bearer /, "");
+  jwtService.verifyToken(token, async (err, decoded) => {
+    if (err || typeof decoded === "undefined")
+      return res
+        .status(401)
+        .json({ message: "Não autorizado. Token inválido" });
+    const user = await userService.findByEmail((decoded as JwtPayload).email);
+    req.user = user;
+    next();
+  });
+}
+
+export function ensureAuthViaQuery(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) {
+  const { token } = req.query;
+  if (!token)
+    return res.status(401).json({ message: "Nenhum token foi encontrado" });
+  if (typeof token !== "string")
+    return res
+      .status(401)
+      .json({ message: "O Parâmetro token deve ser do tipo string" });
+
+  jwtService.verifyToken(token, async (err, decoded) => {
+    if (err || typeof decoded === "undefined")
+      return res
+        .status(401)
+        .json({ message: "Não autorizado. Token inválido" });
+    const user = await userService.findByEmail((decoded as JwtPayload).email);
+    req.user = user;
+    next();
+  });
+}
