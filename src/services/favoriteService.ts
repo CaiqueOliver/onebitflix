@@ -17,11 +17,28 @@ export const favoriteService = {
     });
     return {
       userId,
-      courses: favorites.map((favorite) => favorite.course),
+      courses: favorites.map((favorite) => favorite.Course),
     };
   },
   create: async (userId: number, courseId: number) => {
     const favorite = Favorite.create({ courseId, userId });
     return favorite;
+  },
+  delete: async (userId: number, courseId: number) => {
+    await Favorite.destroy({
+      where: {
+        userId,
+        courseId,
+      },
+    });
+  },
+  isFavorited: async (userId: number, courseId: number) => {
+    const favorite = await Favorite.findOne({
+      where: {
+        userId,
+        courseId,
+      },
+    });
+    return favorite !== null;
   },
 };
